@@ -1,0 +1,41 @@
+services:
+  redis-service:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  biometric-http-server:
+    image: vsynclabs/biometric-http-server:latest
+    container_name: biometric-http-server
+    environment:
+      - DB_URL=${S1_DB_URL}
+      - SERVER_PORT=${S1_SERVER_PORT}
+      - SMTP_USERNAME=${S1_SMTP_USERNAME}
+      - SMTP_PASSWORD=${S1_SMTP_PASSWORD}
+      - SMTP_SERVICE=${S1_SMTP_SERVICE}
+    volumes:
+      - ./app.log:/app/app.log
+    ports:
+      - "8080:8080"
+
+  biometric-mqtt-message-processor:
+    image: vsynclabs/biometric-mqtt-message-processor:latest
+    container_name: biometric-mqtt-message-processor
+    environment:
+      - MQTT_CLIENT_ID=${S2_MQTT_CLIENT_ID}
+      - MQTT_HOST=${S2_MQTT_HOST}
+      - MQTT_PORT=${S2_MQTT_PORT}
+      - DB_URI=${S2_DB_URI}
+      - REDIS_URI=${S2_REDIS_URI}
+    volumes:
+      - ./mqtt-message-processor.log:/app/app.log
+
+  biometric-cache-to-db-syncer:
+    image: vsynclabs/biometric-cache-to-db-syncer:latest
+    container_name: biometric-cache-to-db-syncer
+    environment:
+      - DB_URI=${S3_DB_URI}
+      - REDIS_URI=${S3_REDIS_URI}
+    volumes:
+      - ./cache-to-db-syncer.log:/app/app.log
